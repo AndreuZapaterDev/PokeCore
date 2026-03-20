@@ -37,6 +37,8 @@ export type PokemonDetail = {
     type?: string
     category?: string
     effect?: string
+    level?: number
+    method?: string
   }>
   heldItems: Array<{ name: string; effect?: string }>
   species: {
@@ -62,7 +64,7 @@ export type PokemonDetail = {
   eggGroups?: string[]
   captureRate?: number
   baseHappiness?: number
-  evolutionChain?: Array<{ id: number; name: string }>
+evolutionChain?: Array<{ id: number; name: string; level?: number; method?: string; trigger?: string }>
 }
 
 const POKEAPI_BASE = 'https://pokeapi.co/api/v2'
@@ -114,19 +116,53 @@ async function getLocalizedEffectFromUrl(url: string | undefined, language = 'es
 async function parseEvolutionChain(
   chain: any,
   language = 'es',
-): Promise<Array<{ id: number; name: string }>> {
-  const result: Array<{ id: number; name: string }> = []
+): Promise<Array<{ id: number; name: string; level?: number; method?: string; trigger?: string }>> {
+  const result: Array<{ id: number; name: string; level?: number; method?: string; trigger?: string }> = []
 
-  async function traverse(node: any) {
+  function formatTrigger(detail: any): string | undefined {
+    if (!detail) return undefined
+    const trigger = detail.trigger?.name
+    const item = detail.item?.name
+    const known = ['level-up', 'trade', 'use-item', 'shed'].includes(trigger)
+
+    if (trigger === 'level-up') {
+      return detail.min_level ? `Nivel ${detail.min_level}` : 'Por nivel'
+    }
+    if (trigger === 'trade') {
+      return 'Intercambio'
+    }
+    if (trigger === 'use-item' && item) {
+      return `Usar ${item}`
+    }
+    if (trigger) {
+      return trigger.replace('-', ' ')
+    }
+    if (item) {
+      return `Usar ${item}`
+    }
+    return known ? trigger : undefined
+  }
+
+  async function traverse(node: any, prevDetail?: any) {
     if (!node || !node.species) return
     const id = getPokemonIdFromUrl(node.species.url)
     if (id) {
       const localizedName = (await getLocalizedNameFromUrl(node.species.url, language)) ?? node.species.name
-      result.push({ id, name: localizedName })
+      const level = prevDetail?.min_level ? Number(prevDetail.min_level) : undefined
+      const trigger = prevDetail?.trigger?.name
+      result.push({
+        id,
+        name: localizedName,
+        level,
+        method: trigger ? trigger.replace('-', ' ') : undefined,
+        trigger: formatTrigger(prevDetail),
+      })
     }
+
     const evolvesTo = Array.isArray(node.evolves_to) ? node.evolves_to : []
     for (const next of evolvesTo) {
-      await traverse(next)
+      const detail = Array.isArray(next.evolution_details) ? next.evolution_details[0] : undefined
+      await traverse(next, detail)
     }
   }
 
@@ -177,7 +213,7 @@ export async function fetchPokemonSummary(
 
   const summary: PokemonCard = {
     id: data.id,
-    name: data.name,
+    name: normalizePokemonName(data.name),
     spriteUrl:
       data.sprites?.other?.['official-artwork']?.front_default ||
       data.sprites?.front_default ||
@@ -200,7 +236,7 @@ export async function fetchPokemonDetail(idOrName: string | number): Promise<Pok
   const speciesResponse = await fetch(`${POKEAPI_BASE}/pokemon-species/${idOrName}`)
   const speciesData = speciesResponse.ok ? await speciesResponse.json() : null
 
-  const localizedName = getLocalizedValue(speciesData?.names, 'es') ?? data.name
+  const localizedName = normalizePokemonName(getLocalizedValue(speciesData?.names, 'es') ?? data.name)
   const description = getFlavorText(speciesData?.flavor_text_entries, 'es')
   const genus = getLocalizedValue(speciesData?.genera, 'es', 'genus')
   const habitat = speciesData?.habitat?.name
@@ -223,11 +259,50 @@ export async function fetchPokemonDetail(idOrName: string | number): Promise<Pok
     ?.map((s: any) => ({ name: s.stat?.name, value: s.base_stat }))
     .filter((s: any) => s.name != null) ?? []
 
-  const moves: Array<{ name: string; detailsUrl?: string }> =
+  const moves: Array<{ name: string; detailsUrl?: string; level?: number; method?: string }> =
     (data.moves ?? [])
-      .slice(0, 20)
-      .map((m: any) => ({ name: m.move?.name, detailsUrl: m.move?.url }))
+      .map((m: any) => {
+        const versionDetails = Array.isArray(m.version_group_details) ? m.version_group_details : []
+        const methods = versionDetails
+          .map((d: any) => ({
+            method: d.move_learn_method?.name,
+            level: Number(d.level_learned_at) || 0,
+          }))
+          .filter((d) => d.method)
+
+        const levelUp = methods.filter((d) => d.method === 'level-up').sort((a, b) => a.level - b.level)[0]
+        const finalMethod = levelUp
+          ? 'level-up'
+          : methods[0]?.method ?? 'unknown'
+
+        return {
+          name: m.move?.name,
+          detailsUrl: m.move?.url,
+          level: levelUp ? levelUp.level : 0,
+          method: finalMethod,
+        }
+      })
       .filter((m: any) => m.name != null)
+      .sort((a, b) => {
+        const priority: Record<string, number> = {
+          'level-up': 1,
+          'egg': 2,
+          'machine': 3,
+          'tutor': 4,
+          'trade': 5,
+          unknown: 6,
+        }
+        const pa = priority[a.method ?? 'unknown'] ?? 99
+        const pb = priority[b.method ?? 'unknown'] ?? 99
+
+        if (pa !== pb) return pa - pb
+
+        if (pa === 1) {
+          return (a.level ?? 0) - (b.level ?? 0)
+        }
+
+        return (a.name ?? '').localeCompare(b.name ?? '')
+      })
 
   const heldItems: Array<{ name: string; detailsUrl?: string }> =
     (data.held_items ?? [])
@@ -388,11 +463,15 @@ export async function fetchPokemonDetail(idOrName: string | number): Promise<Pok
   }
 }
 
+function normalizePokemonName(name: string): string {
+  return String(name ?? '').replace(/-/g, ' ')
+}
+
 export function toPokemonCard(item: PokemonListItem): PokemonCard {
   const id = getPokemonIdFromUrl(item.url)
   return {
     id,
-    name: item.name,
+    name: normalizePokemonName(item.name),
     spriteUrl: getPokemonSpriteUrl(id),
     types: [],
   }

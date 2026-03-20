@@ -1,0 +1,57 @@
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.authForm {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.authForm .tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.authForm label {
+  display: block;
+  margin: 0.6rem 0 0.25rem;
+  font-weight: 600;
+}
+
+.authForm input {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.authForm button.button {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.status {
+  max-width: 420px;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.status.success {
+  color: #7edd5d;
+}
+
+.status.error {
+  color: #ff8a8a;
+}

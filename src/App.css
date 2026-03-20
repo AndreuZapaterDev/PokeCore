@@ -130,13 +130,14 @@ input {
 
 .page {
   flex: 1;
-  width: min(100%, var(--max));
+  width: min(100%, 1400px); /* más espacio para contenido */
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.25rem 1.25rem 3rem;
+  padding: 2.25rem 2rem 3rem;
   border-radius: calc(var(--radius) * 1.15);
-  background: rgba(10, 14, 26, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 32px 60px rgba(0, 0, 0, 0.45);
+  background: rgba(10, 14, 26, 0.40); /* más sutil, menos contraste */
+  border: 1px solid rgba(255, 255, 255, 0.08); /* borde más suave */
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25); /* sombra ligera */
   backdrop-filter: blur(18px);
 }
 
@@ -175,6 +176,26 @@ input {
 
 .button.secondary:hover {
   opacity: 1;
+}
+
+.pageNumberList {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ellipsis {
+  color: var(--muted);
+  font-weight: 700;
+  padding: 0 0.3rem;
+}
+
+.button.active {
+  background: rgba(66, 161, 255, 0.95);
+  color: #05070c;
+  transform: translateY(-1px);
 }
 
 .search {

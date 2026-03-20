@@ -10,18 +10,53 @@
 
 .detail.wiki {
   display: grid;
-  grid-template-columns: 1.7fr 1fr;
-  gap: 1.25rem;
-  align-items: start;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 1rem;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0.75rem;
+  padding: 0.85rem;
+  background: rgba(11, 19, 33, 0.5);
+  border: 1px solid rgba(115, 131, 171, 0.25);
 }
 
 .detail.wiki .detailHeader {
+  grid-row: 1;
   grid-column: 1 / -1;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wikiTabs {
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0;
+  padding: 0.35rem 0.6rem;
+  background: rgba(15, 24, 40, 0.52);
+  border-radius: var(--radius);
+  border: 1px solid rgba(115, 131, 171, 0.2);
+}
+
+.wikiContent {
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 1.2rem;
+}
+
+.wikiMain {
+  display: grid;
+  gap: 1rem;
+}
+
+.wikiSidebar {
+  position: sticky;
+  top: 90px;
+  align-self: start;
+  display: grid;
+  gap: 1rem;
 }
 
 .wikiHeader {
@@ -157,19 +192,28 @@
 }
 
 .wikiSection {
-  padding: 1.3rem;
+  padding: 1.35rem;
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(145deg, rgba(40, 47, 69, 0.42), rgba(24, 29, 43, 0.62));
+  border: 1px solid rgba(115, 131, 171, 0.34);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.wikiSection:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.35);
 }
 
 .wikiSection h3 {
   margin-top: 0;
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-  letter-spacing: 0.02em;
+  margin-bottom: 0.85rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: rgba(240, 248, 255, 0.95);
 }
+
 
 .detailList {
   display: grid;
@@ -182,11 +226,22 @@
 
 .detailList dt {
   font-weight: 700;
+  color: rgba(204, 217, 255, 0.94);
+  text-transform: uppercase;
+  font-size: 0.82rem;
 }
 
 .detailList dd {
   margin: 0;
-  color: var(--muted);
+  color: rgba(212, 225, 255, 0.88);
+  line-height: 1.45;
+}
+
+.infoGrid > div {
+  background: rgba(6, 15, 31, 0.35);
+  border: 1px solid rgba(115, 131, 171, 0.28);
+  border-radius: calc(var(--radius) / 1.5);
+  padding: 0.85rem;
 }
 
 .statsTable {
@@ -235,7 +290,50 @@
 .evolutionChain {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  align-items: center;
+  gap: 1rem;
+}
+
+.evolutionCard {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.evolutionImageLink {
+  display: block;
+  border-radius: 0.45rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.evolutionImage {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: rgba(0,0,0,0.1);
+}
+
+.evolutionInfo {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 100px;
+}
+
+.evolutionMeta {
+  font-size: 0.78rem;
+  color: rgba(212, 225, 255, 0.88);
+}
+
+.evolutionArrow {
+  font-size: 1.25rem;
+  color: rgba(180, 190, 210, 0.9);
 }
 
 .evolutionLink {
@@ -291,32 +389,91 @@
 }
 
 .moveList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 0.5rem;
-  margin: 0.5rem 0 0;
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.moveGroup {
+  margin-bottom: 1rem;
 }
 
-.moveBadge {
-  padding: 0.75rem 0.95rem;
-  border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.1);
-  transition: transform 150ms ease, background 150ms ease;
+.moveGroupTitle {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.moveItem {
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.45rem;
+  background: rgba(25, 33, 53, 0.76);
+  border: 1px solid rgba(152, 183, 217, 0.35);
+  box-shadow: 0 7px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.moveBadge:hover {
+.moveItem:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+  background: rgba(31, 39, 62, 0.86);
 }
 
-.moveBadge {
-  padding: 0.25rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 0.8rem;
-  text-transform: capitalize;
+.moveTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.moveTitle .moveInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.moveType {
+  color: #fff;
+  background: rgba(66, 161, 255, 0.24);
+  border: 1px solid rgba(66, 161, 255, 0.52);
+  border-radius: 0.35rem;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.moveMeta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-left: 0.8rem;
+}
+
+.moveMetaItem {
+  margin-right: 0.2rem;
+}
+
+.moveMetaItem {
+  font-size: 0.72rem;
+  color: rgba(222, 230, 244, 0.92);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.35rem;
+  padding: 0.18rem 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .statName {
@@ -363,9 +520,24 @@
 .wikiTabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.45rem;
   margin-bottom: 1rem;
-  padding: 0 0.5rem;
+  padding: 0.2rem 0.6rem;
+  grid-column: 1 / -1;
+  border-radius: var(--radius);
+  background: rgba(15, 24, 40, 0.5);
+  border: 1px solid rgba(115, 131, 171, 0.2);
+}
+
+.wikiContent {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 1.25rem;
+  grid-column: 1 / -1;
+}
+
+.wikiMain {
+  grid-column: 1 / 2;
 }
 
 .tabButton {

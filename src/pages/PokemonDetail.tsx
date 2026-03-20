@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 import './PokemonDetail.css'
-import { fetchPokemonDetail } from '../services/pokeapi'
+import { fetchPokemonDetail, getPokemonSpriteUrl } from '../services/pokeapi'
 import type { PokemonDetail } from '../services/pokeapi'
 
 const typeLabels: Record<string, string> = {
@@ -26,6 +26,27 @@ const typeLabels: Record<string, string> = {
   fairy: 'Hada',
 }
 
+const typeColors: Record<string, string> = {
+  normal: '#A8A77A',
+  fire: '#EE8130',
+  water: '#6390F0',
+  electric: '#F7D02C',
+  grass: '#7AC74C',
+  ice: '#96D9D6',
+  fighting: '#C22E28',
+  poison: '#A33EA1',
+  ground: '#E2BF65',
+  flying: '#A98FF3',
+  psychic: '#F95587',
+  bug: '#A6B91A',
+  rock: '#B6A136',
+  ghost: '#735797',
+  dragon: '#6F35FC',
+  dark: '#705746',
+  steel: '#B7B7CE',
+  fairy: '#D685AD',
+}
+
 const statLabels: Record<string, string> = {
   hp: 'PS',
   attack: 'Ataque',
@@ -40,10 +61,9 @@ export default function PokemonDetailPage() {
   const [pokemon, setPokemon] = useState<PokemonDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'info' | 'moves' | 'stats' | 'evolution' | 'locations'>('info')
+  const [activeTab, setActiveTab] = useState<'stats' | 'moves' | 'evolution' | 'locations'>('stats')
 
   const tabs = [
-    { key: 'info', label: 'Info' },
     { key: 'stats', label: 'Estadísticas' },
     { key: 'moves', label: 'Movimientos' },
     { key: 'evolution', label: 'Evolución' },
@@ -97,11 +117,22 @@ export default function PokemonDetailPage() {
               <h2>{pokemon.name}</h2>
               <span className="badge">#{pokemon.id.toString().padStart(3, '0')}</span>
               <div className="typeList">
-                {pokemon.types.map((type) => (
-                  <span key={type} className={`typeBadge type-${type}`}>
-                    {typeLabels[type] ?? type}
-                  </span>
-                ))}
+                {pokemon.types.map((type) => {
+                  const color = typeColors[type] ?? '#A8A77A'
+                  return (
+                    <span
+                      key={type}
+                      className={`typeBadge type-${type}`}
+                      style={{
+                        background: `${color}33`,
+                        border: `1px solid ${color}66`,
+                        color: '#fff',
+                      }}
+                    >
+                      {typeLabels[type] ?? type}
+                    </span>
+                  )
+                })}
               </div>
 
               <div className="detailQuick">
@@ -147,128 +178,18 @@ export default function PokemonDetailPage() {
 
           <div className="wikiContent">
             <section className="wikiMain">
-              {activeTab === 'info' && (
-                <>
-                  {pokemon.description && (
-                    <article className="wikiSection">
-                      <h3>Descripción</h3>
-                      <p>{pokemon.description}</p>
-                    </article>
-                  )}
-
-                  <article className="wikiSection">
-                    <h3>Ficha</h3>
-                    <div className="infoGrid">
-                      <div>
-                        <dl className="detailList">
-                          <dt>Especie</dt>
-                          <dd>
-                            <a href={pokemon.species.url} target="_blank" rel="noreferrer">
-                              {pokemon.species.name}
-                            </a>
-                          </dd>
-                          {pokemon.genus && (
-                            <>
-                              <dt>Género</dt>
-                              <dd>{pokemon.genus}</dd>
-                            </>
-                          )}
-                          {pokemon.habitat && (
-                            <>
-                              <dt>Hábitat</dt>
-                              <dd>{pokemon.habitat}</dd>
-                            </>
-                          )}
-                          {pokemon.eggGroups && pokemon.eggGroups.length > 0 && (
-                            <>
-                              <dt>Grupos huevo</dt>
-                              <dd>{pokemon.eggGroups.join(', ')}</dd>
-                            </>
-                          )}
-                          {pokemon.captureRate != null && (
-                            <>
-                              <dt>Tasa de captura</dt>
-                              <dd>{pokemon.captureRate}</dd>
-                            </>
-                          )}
-                          {pokemon.baseHappiness != null && (
-                            <>
-                              <dt>Felicidad base</dt>
-                              <dd>{pokemon.baseHappiness}</dd>
-                            </>
-                          )}
-                        </dl>
-                      </div>
-
-                      <div>
-                        <dl className="detailList">
-                          <dt>Altura</dt>
-                          <dd>{pokemon.height / 10} m</dd>
-                          <dt>Peso</dt>
-                          <dd>{pokemon.weight / 10} kg</dd>
-                          <dt>Experiencia base</dt>
-                          <dd>{pokemon.baseExperience}</dd>
-                          {pokemon.gameIndices && pokemon.gameIndices.length > 0 && (
-                            <>
-                              <dt>Índice en juegos</dt>
-                              <dd>
-                                {pokemon.gameIndices.map((gi) => `${gi.game} (${gi.index})`).join(', ')}
-                              </dd>
-                            </>
-                          )}
-                          {pokemon.cries && (pokemon.cries.latest || pokemon.cries.legacy) && (
-                            <>
-                              <dt>Gritos</dt>
-                              <dd>
-                                {pokemon.cries.latest && (
-                                  <a href={pokemon.cries.latest} target="_blank" rel="noreferrer">
-                                    Latest
-                                  </a>
-                                )}
-                                {pokemon.cries.legacy && (
-                                  <span>
-                                    {' '}|{' '}
-                                    <a href={pokemon.cries.legacy} target="_blank" rel="noreferrer">
-                                      Legacy
-                                    </a>
-                                  </span>
-                                )}
-                              </dd>
-                            </>
-                          )}
-                        </dl>
-                      </div>
-                    </div>
-                  </article>
-
-                  {pokemon.abilities.length > 0 && (
-                    <article className="wikiSection">
-                      <h3>Habilidades</h3>
-                      <ul className="wikiList">
-                        {pokemon.abilities.map((ability) => (
-                          <li key={ability.name}>
-                            <strong>{ability.name}</strong> {ability.hidden ? '(oculta)' : ''}
-                            {ability.effect ? <p className="smallText">{ability.effect}</p> : null}
-                          </li>
-                        ))}
-                      </ul>
-                    </article>
-                  )}
-
-                  {pokemon.heldItems.length > 0 && (
-                    <article className="wikiSection">
-                      <h3>Objetos</h3>
-                      <ul className="wikiList">
-                        {pokemon.heldItems.map((item) => (
-                          <li key={item.name}>
-                            <strong>{item.name}</strong>
-                            {item.effect ? <p className="smallText">{item.effect}</p> : null}
-                          </li>
-                        ))}
-                      </ul>
-                    </article>
-                  )}
-                </>
+              {pokemon.heldItems.length > 0 && (
+                <article className="wikiSection">
+                  <h3>Objetos</h3>
+                  <ul className="wikiList">
+                    {pokemon.heldItems.map((item) => (
+                      <li key={item.name}>
+                        <strong>{item.name}</strong>
+                        {item.effect ? <p className="smallText">{item.effect}</p> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
               )}
 
               {activeTab === 'stats' && (
@@ -297,22 +218,71 @@ export default function PokemonDetailPage() {
 
               {activeTab === 'moves' && (
                 <article className="wikiSection">
-                  <h3>Movimientos</h3>
-                  <div className="moveList">
-                    {pokemon.moves.map((move) => (
-                      <div key={move.name} className="moveBadge">
-                        <strong>{move.name}</strong>
-                        <div className="moveMeta">
-                          {move.type && <span className="moveMetaItem">{move.type}</span>}
-                          {move.category && <span className="moveMetaItem">{move.category}</span>}
-                          {move.power != null && <span className="moveMetaItem">PWR: {move.power}</span>}
-                          {move.accuracy != null && <span className="moveMetaItem">ACC: {move.accuracy}</span>}
-                          {move.pp != null && <span className="moveMetaItem">PP: {move.pp}</span>}
-                        </div>
-                        {move.effect ? <p className="smallText">{move.effect}</p> : null}
+                  {['level-up', 'machine', 'tutor', 'egg', 'trade', 'unknown'].map((groupMethod) => {
+                    const group = pokemon.moves.filter((move) => (move.method ?? 'unknown') === groupMethod)
+                    if (group.length === 0) return null
+
+                    const titleMap: Record<string, string> = {
+                      'level-up': 'Por nivel',
+                      machine: 'Por MT/MO',
+                      tutor: 'Por profesor',
+                      egg: 'Por huevo',
+                      trade: 'Por intercambio',
+                      unknown: 'Otros',
+                    }
+
+                    return (
+                      <div key={groupMethod} className="moveGroup">
+                        <h4 className="moveGroupTitle">{titleMap[groupMethod]}</h4>
+                        <ul className="moveList">
+                          {group.map((move) => {
+                            const moveType = move.type || 'normal'
+                            const baseColor = typeColors[moveType] || '#A8A77A'
+                            return (
+                              <li
+                                key={`${move.name}-${move.power ?? 'x'}-${move.accuracy ?? 'x'}-${move.pp ?? 'x'}`}
+                                className="moveItem"
+                                style={{
+                                  borderColor: `${baseColor}bb`,
+                                  background: `linear-gradient(145deg, ${baseColor}22, ${baseColor}10)`,
+                                }}
+                              >
+                                <div className="moveTitle">
+                                  <div className="moveInfo">
+                                    <strong style={{ color: baseColor }}>{move.name}</strong>
+                                    <div className="moveMeta">
+                                      {move.category && <span className="moveMetaItem">{move.category}</span>}
+                                      {move.level != null && move.level > 0 && (
+                                        <span className="moveMetaItem">Lv: {move.level}</span>
+                                      )}
+                                      {move.method && move.method !== 'unknown' && (
+                                        <span className="moveMetaItem">{move.method.replace('-', ' ')}</span>
+                                      )}
+                                      {move.power != null && <span className="moveMetaItem">PWR: {move.power}</span>}
+                                      {move.accuracy != null && <span className="moveMetaItem">ACC: {move.accuracy}</span>}
+                                      {move.pp != null && <span className="moveMetaItem">PP: {move.pp}</span>}
+                                    </div>
+                                  </div>
+                                  {move.type && (
+                                    <span
+                                      className="moveType"
+                                      style={{
+                                        background: `${baseColor}dd`,
+                                        borderColor: baseColor,
+                                      }}
+                                    >
+                                      {typeLabels[move.type] ?? move.type}
+                                    </span>
+                                  )}
+                                </div>
+                                {move.effect ? <p className="smallText">{move.effect}</p> : null}
+                              </li>
+                            )
+                          })}
+                        </ul>
                       </div>
-                    ))}
-                  </div>
+                    )
+                  })}
                 </article>
               )}
 
@@ -320,10 +290,30 @@ export default function PokemonDetailPage() {
                 <article className="wikiSection">
                   <h3>Evolución</h3>
                   <div className="evolutionChain">
-                    {pokemon.evolutionChain.map((stage) => (
-                      <Link key={stage.id} to={`/pokemon/${stage.id}`} className="evolutionLink">
-                        {stage.name}
-                      </Link>
+                    {pokemon.evolutionChain.map((stage, index) => (
+                      <div key={stage.id} className="evolutionCard">
+                        <Link to={`/pokemon/${stage.id}`} className="evolutionImageLink">
+                          <img
+                            src={getPokemonSpriteUrl(stage.id)}
+                            alt={stage.name}
+                            width={100}
+                            height={100}
+                            className="evolutionImage"
+                            loading="lazy"
+                          />
+                        </Link>
+                        <div className="evolutionInfo">
+                          <strong>{stage.name}</strong>
+                          {stage.level != null ? (
+                            <span className="evolutionMeta">Evoluciona a Lv. {stage.level}</span>
+                          ) : stage.trigger ? (
+                            <span className="evolutionMeta">{stage.trigger}</span>
+                          ) : (
+                            <span className="evolutionMeta">Origen</span>
+                          )}
+                        </div>
+                        {index < pokemon.evolutionChain.length - 1 && <span className="evolutionArrow">→</span>}
+                      </div>
                     ))}
                   </div>
                 </article>
@@ -347,6 +337,12 @@ export default function PokemonDetailPage() {
             </section>
 
             <aside className="wikiSidebar">
+              {pokemon.description && (
+                <section className="wikiSection">
+                  <h3>Descripción</h3>
+                  <p>{pokemon.description}</p>
+                </section>
+              )}
               <section className="wikiSection">
                 <h3>Ficha</h3>
                 <dl className="detailList">
@@ -386,10 +382,6 @@ export default function PokemonDetailPage() {
                       <dd>{pokemon.baseHappiness}</dd>
                     </>
                   )}
-                  <dt>Altura</dt>
-                  <dd>{pokemon.height / 10} m</dd>
-                  <dt>Peso</dt>
-                  <dd>{pokemon.weight / 10} kg</dd>
                   <dt>Experiencia base</dt>
                   <dd>{pokemon.baseExperience}</dd>
                 </dl>
@@ -423,16 +415,6 @@ export default function PokemonDetailPage() {
                 </section>
               )}
 
-              {pokemon.forms && pokemon.forms.length > 0 && (
-                <section className="wikiSection">
-                  <h3>Formas</h3>
-                  <ul className="wikiList">
-                    {pokemon.forms.map((form) => (
-                      <li key={form.name}>{form.name}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
             </aside>
           </div>
         </section>
