@@ -271,8 +271,8 @@ export async function fetchPokemonDetail(idOrName: string | number): Promise<Pok
           .filter((d: { method?: string; level: number }): d is { method: string; level: number } => Boolean(d.method))
 
         const levelUp = methods
-          .filter((d) => d.method === 'level-up')
-          .sort((a, b) => a.level - b.level)[0]
+          .filter((d: { method: string; level: number }) => d.method === 'level-up')
+          .sort((a: { method: string; level: number }, b: { method: string; level: number }) => a.level - b.level)[0]
         const finalMethod = levelUp
           ? 'level-up'
           : methods[0]?.method ?? 'unknown'
