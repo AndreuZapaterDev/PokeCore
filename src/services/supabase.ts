@@ -148,7 +148,7 @@ export async function fetchPokemonListFromSupabase(
     throw new Error('Supabase no está configurado')
   }
 
-  let query = supabase
+  let query = (supabase as unknown as any)
     .from('pokemons')
     .select('*', { count: 'exact' })
     .order('id', { ascending: true })
@@ -180,7 +180,7 @@ export async function fetchPokemonDetailFromSupabase(
   const byId = typeof idOrName === 'number' || /^[0-9]+$/.test(String(idOrName))
   const matchValue = byId ? Number(idOrName) : String(idOrName).toLowerCase()
 
-  const query = supabase
+  const query = (supabase as unknown as any)
     .from('pokemons')
     .select('*')
     .limit(1)

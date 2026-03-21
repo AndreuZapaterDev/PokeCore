@@ -263,14 +263,16 @@ export async function fetchPokemonDetail(idOrName: string | number): Promise<Pok
     (data.moves ?? [])
       .map((m: any) => {
         const versionDetails = Array.isArray(m.version_group_details) ? m.version_group_details : []
-        const methods: Array<{ method?: string; level: number }> = versionDetails
+        const methods: Array<{ method: string; level: number }> = versionDetails
           .map((d: any) => ({
             method: d.move_learn_method?.name,
             level: Number(d.level_learned_at) || 0,
           }))
           .filter((d: { method?: string; level: number }): d is { method: string; level: number } => Boolean(d.method))
 
-        const levelUp = methods.filter((d) => d.method === 'level-up').sort((a, b) => a.level - b.level)[0]
+        const levelUp = methods
+          .filter((d) => d.method === 'level-up')
+          .sort((a, b) => a.level - b.level)[0]
         const finalMethod = levelUp
           ? 'level-up'
           : methods[0]?.method ?? 'unknown'
